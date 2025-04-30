@@ -1,0 +1,185 @@
+#include <WiFi.h>
+#include <DHT.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+
+// CONFIGURAÇÕES
+#define PIN_DHT 12
+#define PIN_BUZZER 27
+#define LED_VERDE 13
+#define LED_AZUL 14
+#define LED_AMARELO 25
+#define LED_VERMELHO 26
+
+const char* SSID = "Wokwi-GUEST";
+const char* PASSWORD = "";
+const char* BROKER_MQTT = "broker.hivemq.com";
+const int BROKER_PORT = 1883;
+const char* ID_MQTT = "esp32_fiap_yan";
+const char* TOPIC_PUBLISH = "fiap/chaAgendfy/temphumi";
+
+bool codigoAtivo = true;
+
+// OBJETOS
+WiFiClient espClient;
+PubSubClient mqtt(espClient);
+DHT dht(PIN_DHT, DHT22);
+
+float temperatura = 0.0;
+float umidade = 0.0;
+unsigned long lastPublish = 0;
+const long publishInterval = 1000;  // 5 segundos
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(LED_VERDE, OUTPUT);
+  pinMode(LED_AZUL, OUTPUT);
+  pinMode(LED_AMARELO, OUTPUT);
+  pinMode(LED_VERMELHO, OUTPUT);
+  pinMode(PIN_BUZZER, OUTPUT);
+
+  dht.begin();
+  setupWifi();
+  setupMQTT();
+}
+
+void loop() {
+  if (!mqtt.connected()) {
+    reconnectMQTT();
+  }
+  mqtt.loop();
+  
+  if (!codigoAtivo) return;
+
+  if (millis() - lastPublish >= publishInterval) {
+    lerSensores();
+    verificarTemperatura();
+    enviarParaMQTT();
+    lastPublish = millis();
+  }
+}
+
+
+// FUNÇÕES
+void setupWifi() {
+  WiFi.begin(SSID, PASSWORD);
+  Serial.print("Conectando ao Wi-Fi");
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nWi-Fi conectado!");
+  Serial.print("IP: ");
+  Serial.println(WiFi.localIP());
+}
+
+void setupMQTT() {
+  mqtt.setServer(BROKER_MQTT, BROKER_PORT);
+  mqtt.setCallback(callback);
+}
+
+void reconnectMQTT() {
+  while (!mqtt.connected()) {
+    Serial.print("Conectando ao MQTT... ");
+    if (mqtt.connect(ID_MQTT)) {
+      Serial.println("conectado!");
+      mqtt.subscribe("fiap/chaAgendfy/control");
+    } else {
+      Serial.print("falhou, rc=");
+      Serial.print(mqtt.state());
+      Serial.println(" tentando novamente em 2s...");
+      delay(2000);
+    }
+  }
+}
+
+void lerSensores() {
+  temperatura = dht.readTemperature();
+  umidade = dht.readHumidity();
+
+  if (isnan(temperatura) || isnan(umidade)) {
+    Serial.println("Erro ao ler DHT22!");
+    return;
+  }
+
+}
+
+
+void desligarLEDs() {
+  digitalWrite(LED_VERDE, LOW);
+  digitalWrite(LED_AZUL, LOW);
+  digitalWrite(LED_AMARELO, LOW);
+  digitalWrite(LED_VERMELHO, LOW);
+}
+
+void verificarTemperatura() {
+  desligarLEDs();
+
+  if (temperatura >= 20 && temperatura < 35) {
+    digitalWrite(LED_AZUL, HIGH);
+    tone(PIN_BUZZER, 1500, 500);
+    delay(1000);
+    digitalWrite(LED_AZUL, LOW);
+  } 
+  else if (temperatura >= 35.5 && temperatura < 37) {
+    digitalWrite(LED_VERDE, HIGH);
+  } 
+  else if (temperatura < 37.5) {
+    digitalWrite(LED_AMARELO, HIGH);
+    delay(1000);
+    digitalWrite(LED_AMARELO, LOW);
+  } 
+   else if (temperatura > 40) {
+    digitalWrite(LED_VERMELHO, HIGH);
+    tone(PIN_BUZZER, 1000, 500);
+    delay(1000);
+    digitalWrite(LED_VERMELHO, LOW);
+  }
+}
+
+void enviarParaMQTT() {
+  StaticJsonDocument<200> doc;
+  doc["temperatura"] = temperatura;
+  doc["umidade"] = umidade;
+
+  String estado = "desconhecido";
+  if (temperatura >= 20 && temperatura < 35) {
+    estado = "HIPOTÉRMICO";
+  } else if (temperatura >= 35.5 && temperatura < 37) {
+    estado = "Normal";
+  } else if (temperatura >= 37.5 && temperatura <= 40) {
+    estado = "Febre";
+  } else if (temperatura > 40) {
+    estado = "CRÍTICO";
+  }
+
+  Serial.printf("Temp: %.2f °C | Umid: %.2f %% | Estado: %s\n", temperatura, umidade, estado.c_str());
+
+  doc["estado"] = estado;
+
+  char buffer[200];
+  serializeJson(doc, buffer);
+  mqtt.publish(TOPIC_PUBLISH, buffer);
+  Serial.print("Publicado no MQTT: ");
+  Serial.println(buffer);
+  }
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  String msg;
+  for (int i = 0; i < length; i++) {
+    msg += (char)payload[i];
+  }
+
+  if (msg == "off") {
+    codigoAtivo = false;
+    Serial.println("Código desativado via MQTT.");
+    desligarLEDs(); // Desliga os LEDs se desligar
+    noTone(PIN_BUZZER); // Para o buzzer
+  } else if (msg == "on") {
+    codigoAtivo = true;
+    Serial.println("Código ativado via MQTT.");
+  }
+}

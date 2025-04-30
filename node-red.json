@@ -1,0 +1,278 @@
+[
+    {
+        "id": "b76d5a43dcad979a",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "276b296152e26126",
+        "type": "mqtt in",
+        "z": "b76d5a43dcad979a",
+        "name": "Topico - Umi",
+        "topic": "fiap/chaAgendfy/temphumi",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "8e4f2a82dce86efb",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 370,
+        "y": 520,
+        "wires": [
+            [
+                "707a6a6a4bd21e9a",
+                "4edfc991f0ba57b2",
+                "eafaef8ffb88e516"
+            ]
+        ]
+    },
+    {
+        "id": "4edfc991f0ba57b2",
+        "type": "change",
+        "z": "b76d5a43dcad979a",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.temperatura",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 590,
+        "y": 480,
+        "wires": [
+            [
+                "17486efc9cc64201"
+            ]
+        ]
+    },
+    {
+        "id": "707a6a6a4bd21e9a",
+        "type": "change",
+        "z": "b76d5a43dcad979a",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.umidade",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 590,
+        "y": 520,
+        "wires": [
+            [
+                "a7cae93b989434ed"
+            ]
+        ]
+    },
+    {
+        "id": "17486efc9cc64201",
+        "type": "ui_gauge",
+        "z": "b76d5a43dcad979a",
+        "name": "",
+        "group": "5e1f7f4f670bb7c5",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Temperatura do Paciente",
+        "label": "C°",
+        "format": "{{value}}",
+        "min": "25",
+        "max": "45",
+        "colors": [
+            "#e6e600",
+            "#00cc00",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 890,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "a7cae93b989434ed",
+        "type": "ui_gauge",
+        "z": "b76d5a43dcad979a",
+        "name": "",
+        "group": "1b86438101febd26",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Umidade da sala",
+        "label": "%",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#b0b0b0",
+            "#362f98",
+            "#1100ff"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 870,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "eafaef8ffb88e516",
+        "type": "ui_text",
+        "z": "b76d5a43dcad979a",
+        "group": "5e1f7f4f670bb7c5",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Situação do paciente",
+        "format": "{{msg.payload.estado}}",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 600,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "0ab8534ab41b202e",
+        "type": "ui_switch",
+        "z": "b76d5a43dcad979a",
+        "name": "",
+        "label": "LIGAR/DESLIGAR",
+        "tooltip": "",
+        "group": "1b86438101febd26",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "fiap/chaAgendfy/control",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "on",
+        "onvalueType": "str",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "off",
+        "offvalueType": "str",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 590,
+        "y": 620,
+        "wires": [
+            [
+                "1ba8cb52629b51f4"
+            ]
+        ]
+    },
+    {
+        "id": "1ba8cb52629b51f4",
+        "type": "mqtt out",
+        "z": "b76d5a43dcad979a",
+        "name": "",
+        "topic": "fiap/chaAgendfy/control",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "8e4f2a82dce86efb",
+        "x": 890,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "8e4f2a82dce86efb",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "broker.hivemq.com",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "5e1f7f4f670bb7c5",
+        "type": "ui_group",
+        "name": "Status do Paciente",
+        "tab": "8f6995fcb26bf979",
+        "order": 2,
+        "disp": true,
+        "width": 6,
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "1b86438101febd26",
+        "type": "ui_group",
+        "name": "Infos e Opções",
+        "tab": "8f6995fcb26bf979",
+        "order": 3,
+        "disp": true,
+        "width": 6,
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "8f6995fcb26bf979",
+        "type": "ui_tab",
+        "name": "Home",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    }
+]

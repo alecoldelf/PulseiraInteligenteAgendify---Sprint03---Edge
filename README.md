@@ -1,7 +1,7 @@
 # Pulseira Inteligente Agendify --- Sprint03 --- Edge
 
 1ESPR
-Alexandre Delfino - RM560059 Livia Pereira - RM5559414 Luigi Thiengo - RM560755 Felipe Molinari - RM559885 Enzo Luciano - RM559557
+Alexandre Delfino - RM560059 Livia Pereira - RM559414 Luigi Thiengo - RM560755 Felipe Molinari - RM559885 Enzo Luciano - RM559557
 
 # Descrição do projeto:
 Com a pulseira inteligente Agendify podemos monitorar a Umidade do ambiente e a Temperatura do paciente, por meio de efeitos sonoros e luzes de LED conseguimos identificar o estado do paciente de forma automárica pela propria pulseira, além disso, um dashboard, como apresentado abaixo, mostra aos funcionários do hospital a Umidade da sala, a Temperatura do paciente e seu estado baseado no nível de temperatura.
